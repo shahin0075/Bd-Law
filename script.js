@@ -1,34 +1,29 @@
 let currentPage = 1;
 let resultsPerPage = 5;
 let currentLanguage = 'en';
-let acts = [];
-let volumes = [];
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadVolumes(); // When the page loads, fetch volumes from the API
+    loadVolumeData();
 });
 
-function loadVolumes() {
-    const apiUrl = 'https://bd-laws.pages.dev/volumes';
-    fetch(apiUrl)
-        .then(response => response.json())
-        .then(data => {
-            volumes = data; // Store the volumes in a variable
-            populateVolumeDropdown(volumes);
+function loadVolumeData() {
+    // Directly fetching data from the website's API to populate volume dropdown
+    fetch('https://bd-laws.pages.dev/')
+        .then(response => response.text()) // Get the HTML response
+        .then(html => {
+            // Use regular expressions or DOM parsing to extract the volume data
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            // Assuming volume data is in a <select> element with a specific id
+            const volumeDropdown = doc.querySelector('#volumeFilter');
+            if (volumeDropdown) {
+                const volumeOptions = volumeDropdown.innerHTML;
+                const volumeFilter = document.getElementById('volumeFilter');
+                volumeFilter.innerHTML = volumeOptions;
+            }
         })
-        .catch(error => {
-            console.error('Error fetching volumes:', error);
-        });
-}
-
-function populateVolumeDropdown(volumes) {
-    const volumeFilter = document.getElementById('volumeFilter');
-    volumes.forEach(volume => {
-        const option = document.createElement('option');
-        option.value = volume.id;
-        option.textContent = volume.name;
-        volumeFilter.appendChild(option);
-    });
+        .catch(error => console.error('Error fetching volume data:', error));
 }
 
 function searchLaws() {
@@ -80,10 +75,6 @@ function searchLaws() {
             loading.classList.add('hidden');
             resultsSection.classList.remove('hidden');
         });
-}
-
-function applyFilters() {
-    searchLaws();
 }
 
 function renderPagination(totalResults) {
